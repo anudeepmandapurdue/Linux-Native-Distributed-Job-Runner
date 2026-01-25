@@ -1,0 +1,7 @@
+# Binaries
+job-runner/job-runner
+*.exe
+*.out
+
+# OS files
+.DS_Store
