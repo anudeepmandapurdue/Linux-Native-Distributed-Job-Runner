@@ -3,6 +3,15 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
+pid_t global_child_pid = -1;
+
+//function when the timer goes off
+void handle_timeout(int sig){
+    if(global_child_pid > 0){
+        printf("\n[WATCHDOG]: Job timed out! Killing process %d...\n", global_child_pid);
+        kill(global_child_pid, SIGKILL); // Send the "Death" signal
+    }
+}
 int main(int argc, char *argv[]){
     //check if user gave a command to run
     if(argc < 2){
@@ -40,7 +49,9 @@ int main(int argc, char *argv[]){
     }
     else { //parent process
         close(pipefd[1]);
-
+        global_child_pid = pid; 
+        printf("--- Watchdog Active (5s timeout) ---\n");
+        alarm(5);
         FILE *log_file  = fopen("job_history.log", "a");
         if(log_file == NULL){
             perror("Failed to open log file");
@@ -62,20 +73,26 @@ int main(int argc, char *argv[]){
 
         int status;
         waitpid(pid, &status, 0); //waits for child and gets result from pipefd[1]
+        alarm(0);
+        printf("\n--- Job Finished ---\n");
+        
+        if (WIFEXITED(status)) {
+            printf("Status: Process exited normally with code %d\n", WEXITSTATUS(status));
+        } 
+        else if (WIFSIGNALED(status)) {
+            // WTERMSIG tells us WHICH signal killed the process.
+            // If it's 9, that's SIGKILL (our Watchdog did it).
+            printf("Status: Process was KILLED by signal %d\n", WTERMSIG(status));
+            if (WTERMSIG(status) == SIGKILL) {
+                printf("Note: This was likely a Watchdog Timeout.\n");
+            }
+        }
+
         if (log_file) {
-            fprintf(log_file, "Result: Exit Code %d\n\n", WEXITSTATUS(status));
+            fprintf(log_file, "FINAL STATUS: %d\n", status);
             fclose(log_file);
         }
-        printf("\n--- Job Finished (Exit Code: %d) ---\n", WEXITSTATUS(status));
-        
-        if(WIFEXITED(status)){
-            int code = WEXITSTATUS(status);
-            printf("Job finished with exit code: %d\n", code);
-    
-        }
-        else if(WIFSIGNALED(status)){
-            printf("Job killed by signal");
-        };
+        close(pipefd[0]);
 
     }
     return 0;
