@@ -40,19 +40,32 @@ int main(int argc, char *argv[]){
     }
     else { //parent process
         close(pipefd[1]);
-        
 
+        FILE *log_file  = fopen("job_history.log", "a");
+        if(log_file == NULL){
+            perror("Failed to open log file");
+        }
         // Loop to read until child closes its end of the pipe
         //pull data from kernel buffer into local RAM (buffer)
         int bytesRead;
-        printf("--- Job Started: %s ---\n", argv[1]);
+        if (log_file){
+            printf("--- Job Started: %s ---\n", argv[1]);
+        }
         while((bytesRead = read(pipefd[0], buffer, sizeof(buffer)-1))> 0){ //read function asks kernel for data from the pipe. loop continues as the child is writing data. 
             buffer[bytesRead]  = '\0'; //index after the child is done writing the data.add null terminator for print f
             printf("%s", buffer);
+            if (log_file){
+                fprintf(log_file, "%s", buffer);
+
+            }
         }   
 
         int status;
         waitpid(pid, &status, 0); //waits for child and gets result from pipefd[1]
+        if (log_file) {
+            fprintf(log_file, "Result: Exit Code %d\n\n", WEXITSTATUS(status));
+            fclose(log_file);
+        }
         printf("\n--- Job Finished (Exit Code: %d) ---\n", WEXITSTATUS(status));
         
         if(WIFEXITED(status)){

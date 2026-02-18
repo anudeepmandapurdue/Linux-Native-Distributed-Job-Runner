@@ -1,0 +1,11 @@
+total 160
+drwxr-xr-x  8 anudeepmanda  staff    256 Feb 18 16:23 .
+drwxr-xr-x  3 anudeepmanda  staff     96 Feb 18 13:25 ..
+drwxr-xr-x  9 anudeepmanda  staff    288 Feb 18 15:48 .git
+-rwxr-xr-x  1 anudeepmanda  staff  34072 Feb 18 16:21 a.out
+-rw-r--r--  1 anudeepmanda  staff      0 Feb 18 16:23 job_history.log
+-rwxr-xr-x  1 anudeepmanda  staff  34072 Feb 18 16:23 main
+-rwxr-xr-x  1 anudeepmanda  staff   2804 Feb 18 16:02 main.c
+-rw-r--r--  1 anudeepmanda  staff    930 Feb 18 13:22 multi_test.c
+Result: Exit Code 0
+
